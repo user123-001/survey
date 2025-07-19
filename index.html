@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Do You Love Me?</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      text-align: center;
+      padding: 40px 20px;
+      background: linear-gradient(135deg, #ffb6c1, #ffe4e1);
+      min-height: 100vh;
+      margin: 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    canvas#fireworksCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      color: #4a4a4a;
+      margin-bottom: 30px;
+      z-index: 1;
+    }
+
+    button {
+      font-size: 1.2rem;
+      padding: 12px 30px;
+      margin: 10px;
+      border: none;
+      border-radius: 30px;
+      background: #ff69b4;
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      z-index: 1;
+    }
+
+    button:hover {
+      background: #ff1493;
+    }
+
+    #response {
+      margin-top: 40px;
+      max-width: 90%;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      z-index: 1;
+    }
+
+    #response img {
+      width: 100%;
+      max-width: 250px;
+      height: auto;
+      object-fit: cover;
+      border-radius: 16px;
+      border: 4px solid white;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+      margin-bottom: 20px;
+    }
+
+    h2 {
+      color: #333;
+      font-size: 1.8rem;
+    }
+
+    .falling {
+      position: fixed;
+      top: -50px;
+      font-size: 30px;
+      animation: fall linear infinite;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    @keyframes fall {
+      to {
+        transform: translateY(110vh);
+        opacity: 0;
+      }
+    }
+
+    /* Flower styles */
+    .flower-container {
+      position: relative;
+      width: 340px;
+      height: 420px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 2;
+      animation: sway 3.5s ease-in-out infinite alternate;
+      perspective: 900px;
+      filter: drop-shadow(0 8px 32px #e7548033);
+      max-width: 95vw;
+      max-height: 70vh;
+      margin: auto;
+    }
+
+    @keyframes sway {
+      0% { transform: rotate(-2deg) scale(1.01); }
+      50% { transform: rotate(2deg) scale(1.03); }
+      100% { transform: rotate(-2deg) scale(1.01); }
+    }
+
+    .love-text {
+      position: absolute;
+      top: 60px;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      font-size: 2.7rem;
+      color: #e75480;
+      font-weight: bold;
+      opacity: 0;
+      pointer-events: none;
+      letter-spacing: 2px;
+      text-shadow: 0 2px 8px #fff, 0 0 20px #e75480aa, 0 0 40px #fffbe6;
+      transform: scale(0.7) translateY(40px);
+      transition: opacity 0.7s cubic-bezier(.68,-0.55,.27,1.55), transform 0.7s cubic-bezier(.68,-0.55,.27,1.55);
+      z-index: 1000;
+      font-family: 'Quicksand', 'Segoe UI', sans-serif;
+      background: none;
+      border-radius: 0;
+      padding: 0;
+      box-shadow: none;
+      max-width: 98vw;
+      word-break: break-word;
+    }
+
+    .love-text.show {
+      opacity: 1;
+      transform: scale(1.1) translateY(-30px);
+      animation: popText 1.2s cubic-bezier(.68,-0.55,.27,1.55), heartGlow 2.5s 1.2s ease-in-out infinite alternate;
+      pointer-events: auto;
+    }
+
+    @keyframes popText {
+      0% { transform: scale(0.7) translateY(40px); }
+      100% { transform: scale(1.1) translateY(-30px); }
+    }
+
+    @keyframes heartGlow {
+      0%, 100% { text-shadow: 0 2px 8px #fff, 0 0 20px #e75480aa, 0 0 40px #fffbe6; }
+      50% { text-shadow: 0 2px 15px #fff, 0 0 30px #ff6699cc, 0 0 60px #ff3366cc; }
+    }
+
+    .rose-svg {
+      pointer-events: none;
+      overflow: visible;
+      width: 100%;
+      height: 100%;
+      max-width: 100vw;
+      max-height: 100vh;
+      display: block;
+      position: absolute;
+      left: 0;
+      top: 0;
+      z-index: 2;
+    }
+
+    .rose-petal {
+      transition: transform 0.7s ease, filter 0.5s ease;
+      transform-origin: 170px 210px;
+      fill: url(#petalGradient);
+      stroke: #b13f63;
+      stroke-width: 2;
+      filter: drop-shadow(0 0 6px #ff74a1);
+      opacity: 0.95;
+    }
+
+    .rose-petal.bloom {
+      transform: scale(1.1) rotateX(15deg);
+      filter: drop-shadow(0 0 20px #ff7aa6);
+      opacity: 1;
+    }
+
+    .stem {
+      position: absolute;
+      top: 220px;
+      left: 160px;
+      width: 12px;
+      height: 180px;
+      background: linear-gradient(180deg, #61b21e 0%, #2c5f00 100%);
+      border-radius: 0 0 20px 20px;
+      box-shadow: 0 0 8px 2px #61b21eaa;
+      animation: stemSway 3s ease-in-out infinite alternate;
+      z-index: 0;
+    }
+
+    @keyframes stemSway {
+      0% { transform: rotate(-3deg); }
+      50% { transform: rotate(3deg); }
+      100% { transform: rotate(-3deg); }
+    }
+
+    .leaf {
+      position: absolute;
+      width: 60px;
+      height: 30px;
+      background: radial-gradient(circle at 50% 50%, #9ade6e 60%, #2c5f00 100%);
+      border-radius: 60% 100% 60% 100% / 100% 60% 100% 60%;
+      box-shadow: 0 0 10px 1px #9ade6e88;
+      opacity: 0.85;
+      animation: leafWiggle 2.5s ease-in-out infinite alternate;
+      z-index: 1;
+    }
+
+    .leaf1 {
+      top: 305px;
+      left: 110px;
+      transform: rotate(-30deg);
+    }
+
+    .leaf2 {
+      top: 345px;
+      left: 180px;
+      transform: rotate(30deg) scaleX(-1);
+    }
+
+    @keyframes leafWiggle {
+      0% { transform: scale(1) rotate(-5deg); }
+      50% { transform: scale(1.1) rotate(6deg); }
+      100% { transform: scale(1) rotate(-5deg); }
+    }
+    .click-me-float {
+      position: absolute;
+      left: 50%;
+      top: -48px;
+      transform: translateX(-50%);
+      font-size: 3rem;
+      color: #e75480;
+      font-weight: bold;
+      text-shadow: 0 2px 8px #fff, 0 0 20px #e75480aa, 0 0 40px #fffbe6;
+      z-index: 1001;
+      pointer-events: none;
+      animation: floatText 1.8s ease-in-out infinite alternate;
+      letter-spacing: 1.5px;
+      font-family: 'Quicksand', 'Segoe UI', sans-serif;
+      opacity: 0.92;
+      white-space: nowrap;
+    }
+    @keyframes floatText {
+      0% { transform: translateX(-50%) translateY(0); opacity: 0.92; }
+      50% { transform: translateX(-50%) translateY(-12px) scale(1.08); opacity: 1; }
+      100% { transform: translateX(-50%) translateY(0); opacity: 0.92; }
+    }
+    .click-me-float {
+      position: absolute;
+      top: -40px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 3rem;
+      color: #e75480;
+      font-weight: bold;
+      opacity: 0.9;
+      pointer-events: none;
+      animation: floatText 3s ease-in-out infinite;
+      z-index: 10;
+      text-shadow: 0 2px 8px #fff, 0 0 20px #e75480aa;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="fireworksCanvas"></canvas>
+
+  <h1 id="question">Do you love me?</h1>
+  <div id="buttons">
+    <button onclick="submitForm('Yes')">Yes</button>
+    <button onclick="submitForm('No')">No</button>
+  </div>
+
+  <div id="response">
+    <img id="responseImage" src="" alt="Response" />
+    <h2 id="responseText"></h2>
+  </div>
+
+  <script>
+    const baseEmojis = ["🎉", "🎂", "🎈", "💖", "🥳", "🎁"];
+    const sadEmojis = ["💔", "😢", "😭", "😿"];
+
+    window.addEventListener("DOMContentLoaded", () => {
+      dropEmojis(baseEmojis, 80);
+    });
+
+    function dropEmojis(emojis, count = 100) {
+      document.querySelectorAll(".falling").forEach(el => el.remove());
+
+      for (let i = 0; i < count; i++) {
+        const sticker = document.createElement("div");
+        sticker.classList.add("falling");
+        sticker.style.left = Math.random() * 100 + "vw";
+        sticker.style.animationDuration = (3 + Math.random() * 3) + "s";
+        sticker.style.animationDelay = Math.random() * 5 + "s";
+        sticker.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+        document.body.appendChild(sticker);
+      }
+    }
+
+    function submitForm(answer) {
+      const formUrl = "https://docs.google.com/forms/d/e/1FAIpQLSd6cm02CUQmjgJD-Dk2OD6HtMpZdoPH-1PifS8xJoBSVYt2dg/formResponse";
+      const formData = new FormData();
+      // Use the _sentinel field name as requested
+      formData.append("entry.1513655310", answer);
+
+      fetch(formUrl, {
+        method: "POST",
+        mode: "no-cors",
+        body: formData
+      });
+
+      document.getElementById("question").style.display = "none";
+      document.getElementById("buttons").style.display = "none";
+
+      const response = document.getElementById("response");
+      response.innerHTML = '';
+
+      if (answer === "Yes") {
+        response.innerHTML = `
+          <div class="flower-container" id="flower">
+            <div class="click-me-float" id="clickMeFloat">Click me</div>
+            <svg class="rose-svg" width="340" height="420" viewBox="0 0 340 420" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <radialGradient id="petalGradient" cx="50%" cy="50%" r="60%">
+                  <stop offset="0%" stop-color="#ffd6e8"/>
+                  <stop offset="40%" stop-color="#e75480"/>
+                  <stop offset="100%" stop-color="#a30045"/>
+                </radialGradient>
+                <radialGradient id="centerGradient" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color="#fff0f5"/>
+                  <stop offset="70%" stop-color="#e75480"/>
+                  <stop offset="100%" stop-color="#7a0030"/>
+                </radialGradient>
+                <filter id="glow" x="-50%" y="-50%" width="200%" height="200%" >
+                  <feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#ff74a1" flood-opacity="0.7" />
+                </filter>
+              </defs>
+              <path class="rose-petal" d="M170,210 Q120,120 170,60 Q220,120 170,210" />
+              <path class="rose-petal" d="M170,210 Q80,160 120,80 Q200,100 170,210" />
+              <path class="rose-petal" d="M170,210 Q260,160 220,80 Q140,100 170,210" />
+              <path class="rose-petal" d="M170,210 Q60,220 90,140 Q180,140 170,210" />
+              <path class="rose-petal" d="M170,210 Q280,220 250,140 Q160,140 170,210" />
+              <path class="rose-petal" d="M170,210 Q100,300 170,360 Q240,300 170,210" />
+              <path class="rose-petal" d="M170,210 Q60,300 120,340 Q200,320 170,210" />
+              <path class="rose-petal" d="M170,210 Q280,300 220,340 Q140,320 170,210" />
+              <ellipse cx="170" cy="210" rx="32" ry="32" fill="url(#centerGradient)" stroke="#a30045" stroke-width="2" filter="url(#glow)" />
+              <path d="M170,210 Q170,180 190,200 Q170,220 150,200 Q170,180 170,210" fill="url(#centerGradient)" stroke="#7a0030" stroke-width="1.5" />
+            </svg>
+            <div class="stem"></div>
+            <div class="leaf leaf1"></div>
+            <div class="leaf leaf2"></div>
+            <div class="love-text" id="loveText"><span id="loveTextContent">&nbsp;</span></div>
+          </div>
+        `;
+        startFireworks(true);
+        setTimeout(() => {
+          const flower = document.getElementById('flower');
+          const rosePetals = flower.querySelectorAll('.rose-petal');
+          const loveText = document.getElementById('loveText');
+          const roseCenter = flower.querySelector('ellipse');
+
+          flower.addEventListener('click', () => {
+            rosePetals.forEach((petal, i) => {
+              setTimeout(() => {
+                petal.classList.add('bloom');
+              }, i * 70);
+            });
+            if (roseCenter) roseCenter.classList.add('glow');
+            document.getElementById('loveTextContent').innerHTML = 'I love you<span style="font-size:2.2rem;">🌹</span>';
+            loveText.style.display = 'block';
+            loveText.classList.add('show');
+          });
+        }, 50);
+      } else {
+        const responseImage = document.createElement('img');
+        responseImage.src = "no.png";
+        responseImage.alt = "No response";
+        const responseText = document.createElement('h2');
+        responseText.textContent = "Saddddddddd 😭";
+        response.appendChild(responseImage);
+        response.appendChild(responseText);
+        dropEmojis(sadEmojis, 60);
+      }
+
+      response.style.display = "flex";
+    }
+
+    // Fireworks animation setup
+    const canvas = document.getElementById("fireworksCanvas");
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let fireworks = [];
+    let particles = [];
+
+    class Firework {
+      constructor(sx, sy, tx, ty) {
+        this.x = sx;
+        this.y = sy;
+        this.sx = sx;
+        this.sy = sy;
+        this.tx = tx;
+        this.ty = ty;
+        this.distanceToTarget = dist(sx, sy, tx, ty);
+        this.distanceTraveled = 0;
+        this.coordinates = [];
+        this.coordinateCount = 3;
+        while(this.coordinateCount--) {
+          this.coordinates.push([this.x, this.y]);
+        }
+        this.angle = Math.atan2(ty - sy, tx - sx);
+        this.speed = 3;
+        this.acceleration = 1.05;
+        this.brightness = random(50, 70);
+        this.targetRadius = 8;
+      }
+      update(index) {
+        this.coordinates.pop();
+        this.coordinates.unshift([this.x, this.y]);
+        if(this.targetRadius < 8) {
+          this.targetRadius += 0.3;
+        } else {
+          this.targetRadius = 8;
+        }
+        this.speed *= this.acceleration;
+        let vx = Math.cos(this.angle) * this.speed;
+        let vy = Math.sin(this.angle) * this.speed;
+        this.distanceTraveled = dist(this.sx, this.sy, this.x + vx, this.y + vy);
+        if(this.distanceTraveled >= this.distanceToTarget) {
+          createParticles(this.tx, this.ty);
+          fireworks.splice(index, 1);
+        } else {
+          this.x += vx;
+          this.y += vy;
+        }
+      }
+      draw() {
+        ctx.beginPath();
+        ctx.moveTo(this.coordinates[this.coordinates.length - 1][0], this.coordinates[this.coordinates.length - 1][1]);
+        ctx.lineTo(this.x, this.y);
+        ctx.strokeStyle = "hsl(" + random(0, 360) + ", 100%, " + this.brightness + "%)";
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(this.tx, this.ty, this.targetRadius, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
+
+    class Particle {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.coordinates = [];
+        this.coordinateCount = 5;
+        while(this.coordinateCount--) {
+          this.coordinates.push([this.x, this.y]);
+        }
+        this.angle = random(0, Math.PI * 2);
+        this.speed = random(1, 10);
+        this.friction = 0.95;
+        this.gravity = 0.7;
+        this.hue = random(0, 360);
+        this.brightness = random(50, 80);
+        this.alpha = 1;
+        this.decay = random(0.015, 0.03);
+      }
+      update(index) {
+        this.coordinates.pop();
+        this.coordinates.unshift([this.x, this.y]);
+        this.speed *= this.friction;
+        this.x += Math.cos(this.angle) * this.speed;
+        this.y += Math.sin(this.angle) * this.speed + this.gravity;
+        this.alpha -= this.decay;
+        if(this.alpha <= 0) {
+          particles.splice(index, 1);
+        }
+      }
+      draw() {
+        ctx.beginPath();
+        ctx.moveTo(this.coordinates[this.coordinates.length - 1][0], this.coordinates[this.coordinates.length - 1][1]);
+        ctx.lineTo(this.x, this.y);
+        ctx.strokeStyle = "hsla(" + this.hue + ", 100%, " + this.brightness + "%, " + this.alpha + ")";
+        ctx.stroke();
+      }
+    }
+
+    function createParticles(x, y) {
+      let particleCount = 30;
+      while(particleCount--) {
+        particles.push(new Particle(x, y));
+      }
+    }
+
+    function dist(aX, aY, bX, bY) {
+      return Math.sqrt((aX - bX) * (aX - bX) + (aY - bY) * (aY - bY));
+    }
+
+    function random(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    function loop() {
+      requestAnimationFrame(loop);
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.globalCompositeOperation = 'lighter';
+
+      let i = fireworks.length;
+      while(i--) {
+        fireworks[i].draw();
+        fireworks[i].update(i);
+      }
+
+      i = particles.length;
+      while(i--) {
+        particles[i].draw();
+        particles[i].update(i);
+      }
+    }
+
+    function startFireworks(start) {
+      if (!start) return;
+      setInterval(() => {
+        let sx = canvas.width / 2;
+        let sy = canvas.height;
+        let tx = Math.random() * canvas.width;
+        let ty = Math.random() * canvas.height / 2;
+        fireworks.push(new Firework(sx, sy, tx, ty));
+      }, 500);
+    }
+
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+
+    loop();
+  </script>
+</body>
+</html>
